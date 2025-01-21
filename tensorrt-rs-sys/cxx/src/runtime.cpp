@@ -25,7 +25,7 @@ rust::Vec<int32_t> CudaEngine::get_tensor_shape(rust::Str name) const noexcept {
 
 rust::Vec<int32_t> CudaEngine::get_profile_shape(rust::Str tensor_name, int32_t profile_index, int32_t selector) const noexcept {
     const auto name_str = std::string(tensor_name);
-    const auto dims engine_->getProfileShape(name_str.c_str(), profile_index, static_cast<OptProfileSelector>(selector));
+    const auto dims = engine_->getProfileShape(name_str.c_str(), profile_index, static_cast<OptProfileSelector>(selector));
     auto dims_vec = rust::Vec<int32_t>();
     dims_vec.reserve(dims.nbDims);
     for (int i = 0; i < dims.nbDims; i++) {
