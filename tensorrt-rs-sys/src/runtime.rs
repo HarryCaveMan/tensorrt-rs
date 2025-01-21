@@ -3,6 +3,13 @@ use cxx::UniquePtr;
 use cuda_rs::{event::CuEvent, stream::CuStream};
 
 #[derive(Debug, Copy, Clone, PartialEq)]
+pub enum OptProfileSelector {
+    Min = 0,
+    Opt = 1,
+    Max = 2,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum DataType {
     // 32-bit floating point format.
     FLOAT = 0,
@@ -292,6 +299,10 @@ pub struct CudaEngine(pub(crate) UniquePtr<ffi::CudaEngine>);
 impl CudaEngine {
     pub fn get_tensor_shape(&self, name: &str) -> Vec<i32> {
         self.0.get_tensor_shape(name)
+    }
+
+    pub fn get_profile_shape(&self, tensor_name: &str, profile_index: i32, selector: OptProfileSelector) -> Vec<i32> {
+        self.0.get_profile_shape(name, profile_index, selector as _)
     }
 
     pub fn get_tensor_dtype(&self, name: &str) -> DataType {

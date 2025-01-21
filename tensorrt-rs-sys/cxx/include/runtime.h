@@ -12,6 +12,7 @@ using nvinfer1::IRuntime;
 using nvinfer1::ICudaEngine;
 using nvinfer1::IExecutionContext;
 using nvinfer1::Dims;
+using nvinfer1::OptProfileSelector;
 using logger::Logger;
 
 class CudaEngine;
@@ -48,6 +49,8 @@ public:
     CudaEngine(std::unique_ptr<ICudaEngine> engine) : engine_(std::move(engine)) {}
 
     rust::Vec<int32_t> get_tensor_shape(rust::Str name) const noexcept;
+
+    rust::Vec<int32_t> get_profile_shape(rust::Str tensor_name, int32_t profile_index, int32_t selector) const noexcept;
 
     int32_t get_tensor_dtype(rust::Str name) const noexcept {
         const auto name_str = std::string(name);

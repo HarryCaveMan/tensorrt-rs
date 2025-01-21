@@ -39,6 +39,8 @@ pub(crate) mod ffi {
         // CudaEngine
         fn get_tensor_shape(self: &CudaEngine, name: &str) -> Vec<i32>;
 
+        fn get_profile_shape(self: &CudaEngine, tensor_name: &str, profile_index: i32, selector: i32) -> Vec<i32>;
+
         fn get_tensor_dtype(self: &CudaEngine, name: &str) -> i32;
 
         fn get_num_layers(self: &CudaEngine) -> i32;
