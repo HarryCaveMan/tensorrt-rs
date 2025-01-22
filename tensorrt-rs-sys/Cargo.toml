@@ -17,3 +17,8 @@ cxx = { version = "1", features = ["c++17", "c++14"] }
 
 [build-dependencies]
 cxx-build = "1"
+
+[features]
+onnx = []
+lean = []
+builder = []

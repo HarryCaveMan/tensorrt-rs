@@ -64,11 +64,18 @@ fn main() {
 
     println!("cargo:rustc-link-search={}", tensorrt_library_dir.to_string_lossy());
 
-    let libraries = vec![
+    let mut libraries = vec![
         "nvinfer",
-        "nvinfer_plugin",
-        "nvparsers",
+        "nvinfer_dispatch"
     ];
+
+    #[cfg(feature = "onnx")]
+    libs.push("nvonnxparser".to_string());
+    #[cfg(feature = "lean")]
+    libs.push("nvinfer_lean".to_string());
+    #[cfg(feature = "builder")]
+    libs.push("nvinfer_builder_resource".to_string());
+
 
     for library in libraries {
         println!("cargo:rustc-link-lib={}", library);

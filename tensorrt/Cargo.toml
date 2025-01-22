@@ -1,6 +1,6 @@
 [package]
 name = "tensorrt"
-version = "0.1.0"
+version = "10.7.0"
 authors = ["Ming Yang <ymviv@qq.com>"]
 description = "Rust wrapper for NVIDIA TensorRT"
 repository = "https://github.com/vivym/tensorrt-rs"
@@ -13,9 +13,22 @@ edition = "2021"
 
 [dependencies]
 cuda-rs = "0.1"
-tensorrt-rs-sys = "0.1"
+tensorrt-rs-sys = { verion = "10.7.0", git = "https://github.com/HarryCaveMan/tensorrt-rs.git" }
 thiserror = "1"
+clap = { version = "4", features = ["derive"] ,optional = true }
+tch = { version = "0.14.0", optional = true}
 
-[dev-dependencies]
-clap = { version = "4", features = ["derive"] }
-tch = "0.14.0"
+
+# Install extra deps and compile examples only if the `examples` feature is enabled
+[features]
+examples = ["dep:clap","dep:tch"]
+
+[[example]]
+name = "pp_ocr"  # Name of your binary
+path = "examples/pp_ocr.rs"
+required-features = ["examples"]
+
+[[example]]
+name = "clip"  # Name of your binary
+path = "examples/clip.rs"
+required-features = ["examples"]
