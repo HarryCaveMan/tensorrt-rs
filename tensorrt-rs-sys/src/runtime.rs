@@ -565,44 +565,41 @@ impl ExecutionContext {
 mod tests {
     use super::*;
     use crate::logger::Severity;
-    use std::env;
-
-    fn print_debug_info() {
-        println!("LD_LIBRARY_PATH: {:?}", env::var("LD_LIBRARY_PATH"));
-        println!("TENSORRT_LIB_PATH: {:?}", env::var("TENSORRT_LIB_PATH"));
-    }
-
     #[test]
     fn test_runtime() {
-        print_debug_info();
-        // use std::{io::Read, path::Path};
+        use std::{io::Read, path::Path};
 
         let mut runtime = Runtime::new().unwrap();
         runtime.logger().log(Severity::Info, "Hello, world!");
 
-        // let engine_path = Path::new("../tmp/pp-ocr-v4-det-fp16.engine");
-        // if engine_path.exists() {
-        //     let mut file = std::fs::File::open(engine_path).unwrap();
-        //     let mut data = Vec::new();
-        //     file.read_to_end(&mut data).unwrap();
+        let engine_path = Path::new("/opt/models/all-MiniLM-L12-v2.trt");
+        if engine_path.exists() {
+            let mut file = std::fs::File::open(engine_path).unwrap();
+            let mut data = Vec::new();
+            file.read_to_end(&mut data).unwrap();
 
-        //     let mut engine = runtime.deserialize(data.as_slice()).unwrap();
-        //     let _context = engine.create_execution_context().unwrap();
+            let mut engine = runtime.deserialize(data.as_slice()).unwrap();
+            let _context = engine.create_execution_context().unwrap();
 
-        //     let num_io_tensors = engine.get_num_io_tensors();
+            let num_io_tensors = engine.get_num_io_tensors();
 
-        //     let msg = format!("num_io_tensors: {}", num_io_tensors);
-        //     runtime.logger().log(Severity::Info, msg.as_str());
+            let mut msg = format!("num_io_tensors: {}", num_io_tensors);
+            runtime.logger().log(Severity::Info, msg.as_str());
 
-        //     for i in 0..num_io_tensors {
-        //         let name = engine.get_io_tensor_name(i);
-        //         let mode = engine.get_tensor_io_mode(name);
-        //         let shape = engine.get_tensor_shape(name);
-        //         let msg = format!("name: {}, mode: {:?}, shape: {:?}", name, mode, shape);
-        //         runtime.logger().log(Severity::Info, msg.as_str());
-        //     }
-        // } else {
-        //     runtime.logger().log(Severity::Info, "Engine file not found! Skip test!");
-        // }
+            for i in 0..num_io_tensors {
+                let name = engine.get_io_tensor_name(i);
+                let mode = engine.get_tensor_io_mode(name);
+                let shape = engine.get_tensor_shape(name);
+                if mode.is_input() {
+                    let max_shape = engine.get_profile_shape(name, 0, OptProfileSelector::Max);
+                    msg = format!("name: {}, mode: {:?}, shape: {:?}, max_shape: {:?}", name, mode, shape, max_shape);
+                } else {
+                    msg = format!("name: {}, mode: {:?}, shape: {:?}", name, mode, shape);
+                }                
+                runtime.logger().log(Severity::Info, msg.as_str());
+            }
+        } else {
+            runtime.logger().log(Severity::Info, "Engine file not found! Skip test!");
+        }
     }
 }
