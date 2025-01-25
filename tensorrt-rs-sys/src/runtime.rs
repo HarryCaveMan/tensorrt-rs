@@ -10,6 +10,13 @@ pub enum OptProfileSelector {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
+pub enum ExecutionContextAllocationStrategy {
+    STATIC = 0,
+    ON_PROFILE_CHANGE = 1,
+    USER_MANAGED = 2
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum DataType {
     // 32-bit floating point format.
     FLOAT = 0,
@@ -205,6 +212,7 @@ pub enum TensorFormat {
     DHWC = 12
 }
 
+#[derive(PartialEq)]
 pub enum EngineCapability {
     //
     // Standard: TensorRT flow without targeting the safety runtime.
@@ -322,8 +330,9 @@ impl CudaEngine {
         self.0.get_num_layers()
     }
 
-    pub fn create_execution_context(&mut self) -> Option<ExecutionContext> {
-        let context = self.0.pin_mut().create_execution_context();
+    pub fn create_execution_context(&mut self, strategy: Option<ExecutionContextAllocationStrategy>) -> Option<ExecutionContext> {
+        let resolved_strategy = strategy.unwrap_or(ExecutionContextAllocationStrategy::STATIC);
+        let context = self.0.pin_mut().create_execution_context(resolved_strategy as _);
         if context.is_null() {
             None
         } else {
@@ -353,9 +362,9 @@ impl CudaEngine {
             Some(ExecutionContext(context))
         }
     }
-
-    pub fn get_device_memory_size(&self) -> usize {
-        self.0.get_device_memory_size()
+    
+    pub fn get_device_memory_size_v2(&self) -> i64 {
+        self.0.get_device_memory_size_v2()
     }
 
     pub fn is_refittable(&self) -> bool {
@@ -411,7 +420,7 @@ impl CudaEngine {
     }
 
     pub fn has_implicit_batch_dimension(&self) -> bool {
-        self.0.has_implicit_batch_dimension()
+        self.get_engine_capability() == EngineCapability::STANDARD
     }
 
     pub fn get_num_io_tensors(&self) -> i32 {
@@ -478,8 +487,8 @@ impl ExecutionContext {
         self.0.all_input_dimensions_specified()
     }
 
-    pub fn all_input_shapes_specified(&self) -> bool {
-        self.0.all_input_shapes_specified()
+    pub fn infer_shapes(&self, nb_max_names: i32, tensor_names: &[&str]) -> i32 {
+        self.0.infer_shapes(nb_max_names, tensor_names)
     }
 
     pub fn set_optimization_profile_async(
@@ -579,7 +588,7 @@ mod tests {
             file.read_to_end(&mut data).unwrap();
 
             let mut engine = runtime.deserialize(data.as_slice()).unwrap();
-            let _context = engine.create_execution_context().unwrap();
+            let _context = engine.create_execution_context(None).unwrap();
 
             let num_io_tensors = engine.get_num_io_tensors();
 

@@ -13,6 +13,7 @@ using nvinfer1::ICudaEngine;
 using nvinfer1::IExecutionContext;
 using nvinfer1::Dims;
 using nvinfer1::OptProfileSelector;
+using nvinfer1::ExecutionContextAllocationStrategy;
 using logger::Logger;
 
 class CudaEngine;
@@ -61,7 +62,7 @@ public:
         return engine_->getNbLayers();
     }
 
-    std::unique_ptr<ExecutionContext> create_execution_context() noexcept;
+    std::unique_ptr<ExecutionContext> create_execution_context(int32_t strategy) noexcept;
 
     bool is_shape_inference_io(rust::Str name) const noexcept {
         const auto name_str = std::string(name);
@@ -75,8 +76,8 @@ public:
 
     std::unique_ptr<ExecutionContext> create_execution_context_without_device_memory() noexcept;
 
-    size_t get_device_memory_size() const noexcept {
-        return engine_->getDeviceMemorySize();
+    int64_t get_device_memory_size_v2() const noexcept {
+        return engine_->getDeviceMemorySizeV2();
     }
 
     bool is_refittable() const noexcept {
@@ -113,10 +114,6 @@ public:
 
     int32_t get_engine_capability() const noexcept {
         return static_cast<int32_t>(engine_->getEngineCapability());
-    }
-
-    bool has_implicit_batch_dimension() const noexcept {
-        return engine_->hasImplicitBatchDimension();
     }
 
     int32_t get_num_io_tensors() const noexcept {
@@ -177,8 +174,12 @@ public:
         return context_->allInputDimensionsSpecified();
     }
 
-    bool all_input_shapes_specified() const noexcept {
-        return context_->allInputShapesSpecified();
+    int32_t infer_shapes(int32_t nb_max_names, rust::Slice<const rust::Str> tensor_names) const noexcept {
+        char const** tensor_names_ptr = new char const*[nb_max_names];
+        for (size_t i = 0; i < tensor_names.size(); i++) {
+            tensor_names_ptr[i] = tensor_names[i].data();
+        }
+        return context_->inferShapes(nb_max_names, tensor_names_ptr);
     }
 
     bool set_optimization_profile_async(int32_t profile, std::size_t stream) noexcept {

@@ -45,7 +45,7 @@ pub(crate) mod ffi {
 
         fn get_num_layers(self: &CudaEngine) -> i32;
 
-        fn create_execution_context(self: Pin<&mut CudaEngine>) -> UniquePtr<ExecutionContext>;
+        fn create_execution_context(self: Pin<&mut CudaEngine>, strategy: i32) -> UniquePtr<ExecutionContext>;
 
         fn is_shape_inference_io(self: &CudaEngine, name: &str) -> bool;
 
@@ -53,7 +53,7 @@ pub(crate) mod ffi {
 
         fn create_execution_context_without_device_memory(self: Pin<&mut CudaEngine>) -> UniquePtr<ExecutionContext>;
 
-        fn get_device_memory_size(self: &CudaEngine) -> usize;
+        fn get_device_memory_size_v2(self: &CudaEngine) -> i64;
 
         fn is_refittable(self: &CudaEngine) -> bool;
 
@@ -70,8 +70,6 @@ pub(crate) mod ffi {
         fn get_num_optimization_profiles(self: &CudaEngine) -> i32;
 
         fn get_engine_capability(self: &CudaEngine) -> i32;
-
-        fn has_implicit_batch_dimension(self: &CudaEngine) -> bool;
 
         fn get_num_io_tensors(self: &CudaEngine) -> i32;
 
@@ -102,7 +100,7 @@ pub(crate) mod ffi {
 
         fn all_input_dimensions_specified(self: &ExecutionContext) -> bool;
 
-        fn all_input_shapes_specified(self: &ExecutionContext) -> bool;
+        fn infer_shapes(self: &ExecutionContext, nb_max_names: i32, tensor_names: &[&str]) -> i32;
 
         fn set_optimization_profile_async(self: Pin<&mut ExecutionContext>, profile_index: i32, stream: usize) -> bool;
 

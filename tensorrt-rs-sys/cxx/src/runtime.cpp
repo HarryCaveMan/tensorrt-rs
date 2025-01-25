@@ -35,8 +35,8 @@ rust::Vec<int32_t> CudaEngine::get_profile_shape(rust::Str tensor_name, int32_t 
 }
 
 std::unique_ptr<ExecutionContext>
-CudaEngine::create_execution_context() noexcept {
-    auto context = engine_->createExecutionContext();
+CudaEngine::create_execution_context(int32_t strategy) noexcept {
+    auto context = engine_->createExecutionContext(static_cast<ExecutionContextAllocationStrategy>(strategy));
     if (!context) {
         return nullptr;
     } else {
@@ -44,9 +44,9 @@ CudaEngine::create_execution_context() noexcept {
     }
 }
 
-std::unique_ptr<ExecutionContext>
+std::unique_ptr<ExecutionContext> 
 CudaEngine::create_execution_context_without_device_memory() noexcept {
-    auto context = engine_->createExecutionContextWithoutDeviceMemory();
+    auto context = engine_->createExecutionContext(ExecutionContextAllocationStrategy::kUSER_MANAGED);
     if (!context) {
         return nullptr;
     } else {

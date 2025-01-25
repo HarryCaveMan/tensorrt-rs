@@ -4,7 +4,7 @@ use crate::{
 };
 use cuda_rs::stream::CuStream;
 use tensorrt_rs_sys::{
-    runtime::{Runtime, CudaEngine, ExecutionContext},
+    runtime::{Runtime, CudaEngine, ExecutionContext, ExecutionContextAllocationStrategy},
     logger::Severity,
 };
 use std::{collections::HashMap, fs, path::Path};
@@ -13,12 +13,13 @@ pub struct TRTEngine {
     runtime: Option<Runtime>,
     engine: Option<CudaEngine>,
     context: Option<ExecutionContext>,
+    allocation_strategy_option: Option<ExecutionContextAllocationStrategy>,
     stream: CuStream,
     tensors: HashMap<String, Tensor>,
 }
 
 impl TRTEngine {
-    pub fn new<P: AsRef<Path>>(engine_path: &P, stream: &CuStream) -> TRTResult<Self> {
+    pub fn new<P: AsRef<Path>>(engine_path: &P, allocation_strategy_option: Option<ExecutionContextAllocationStrategy>, stream: &CuStream) -> TRTResult<Self> {
         let mut runtime = match Runtime::new() {
             Some(runtime) => runtime,
             None => return Err(TRTError::RuntimeCreationError),
@@ -35,6 +36,7 @@ impl TRTEngine {
             runtime: Some(runtime),
             engine: Some(engine),
             context: None,
+            allocation_strategy_option: allocation_strategy_option,
             stream: stream.clone(),
             tensors: HashMap::new(),
         })
@@ -47,7 +49,7 @@ impl TRTEngine {
             None => return Err(TRTError::EngineCreationError),
         };
 
-        self.context = match engine.create_execution_context() {
+        self.context = match engine.create_execution_context(self.allocation_strategy_option) {
             Some(context) => Some(context),
             None => return Err(TRTError::ExecutionContextCreationError),
         };
